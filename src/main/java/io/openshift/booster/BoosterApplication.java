@@ -15,8 +15,13 @@
  */
 package io.openshift.booster;
 
+import ch.qos.logback.access.tomcat.LogbackValve;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.embedded.ConfigurableEmbeddedServletContainer;
+import org.springframework.boot.context.embedded.EmbeddedServletContainerCustomizer;
+import org.springframework.boot.context.embedded.tomcat.TomcatEmbeddedServletContainerFactory;
+import org.springframework.context.annotation.Bean;
 
 @SpringBootApplication
 public class BoosterApplication {
@@ -24,4 +29,19 @@ public class BoosterApplication {
     public static void main(String[] args) {
         SpringApplication.run(BoosterApplication.class, args);
     }
+
+    @Bean
+    public EmbeddedServletContainerCustomizer containerCustomizer() {
+        return configurableContainer -> {
+            if (configurableContainer instanceof TomcatEmbeddedServletContainerFactory) {
+                TomcatEmbeddedServletContainerFactory containerFactory = (TomcatEmbeddedServletContainerFactory)
+                      configurableContainer;
+
+                LogbackValve logbackValve = new LogbackValve();
+                logbackValve.setFilename("logback-access.xml");
+                containerFactory.addContextValves(logbackValve);
+            }
+        };
+    }
+
 }
